@@ -1,0 +1,5 @@
+gst-viewperf is an utility to visually see what's happening in the pipeline. To do this, simply put queues anywhere you need to see.
+
+There are currently two health indicators:
+* queue filling states, by polling queue properties; queue maximum filling is volontarily raised so that you can see the changes easily
+* plugin-related relative elapsed time, using progressreport
