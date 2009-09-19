@@ -8,7 +8,7 @@ from gstmanager.event import EventListener, EventLauncher
 from candies.core import Group, Rectangle, Color, Label
 from clutter import Color as CColor
 
-wwidth = 100
+wwidth = 140
 wheight = 30
 hspacing = 10
 vspacing = 20
@@ -30,14 +30,16 @@ class PipelineViz(Canvas, EventListener):
         self.pipelinel = pipelinel
         self.parse_pipeline(pipelinel)
         self.display_pipeline()
-        self.stats = StatsGrabber()
+        self.stats = StatsGrabber(pipelinel)
+        self.display_cpuinfo()
 
         self.desc = desc = Label()
         desc.set_position(0, 400)
         desc.show()
         self.stage.add(desc)
 
-        gobject.timeout_add(100, self.stats.get_queue_info, pipelinel, self.queue_list)
+        gobject.timeout_add(100, self.stats.get_queue_info, self.queue_list)
+        gobject.timeout_add(100, self.stats.get_videorate_info, self.videorate_list)
 
     def evt_item_description(self, event):
         txt = event.content
@@ -47,6 +49,7 @@ class PipelineViz(Canvas, EventListener):
     def parse_pipeline(self, pipelinel):
         self.item_list = item_list = []
         self.queue_list = queue_list = []
+        self.videorate_list = videorate_list = []
         for item in pipelinel.pipeline:
             item_list.append(item)
         item_list.reverse()
@@ -55,6 +58,8 @@ class PipelineViz(Canvas, EventListener):
             if name.startswith("queue"):
                 queue_list.append({"name": name, "elt": item})
                 #print "found queue"
+            elif name.startswith("videorate"):
+                videorate_list.append({"name": name, "elt": item})
        
     def display_pipeline(self):
         for item in self.item_list:
@@ -90,6 +95,27 @@ class PipelineViz(Canvas, EventListener):
             self.yoffset += wheight + vspacing*2
             self.n_actors = 0
 
+    def display_cpuinfo(self):
+        self.cpu = cpu = Label()
+        cpu.set_line_wrap(False)
+        self.update_cpuinfo()
+        self.stage.add(cpu)
+        cpu.set_position(1024-cpu.get_width(), 590)
+        gobject.timeout_add_seconds(10, self.update_cpuinfo)
+
+    def update_cpuinfo(self):
+        file = open("/proc/cpuinfo", "r")
+        data = file.readlines()
+        file.close()
+        for line in data:
+            if line.startswith("model name"):
+                model = line.split(":")[1]
+                model = model.replace("\n", "")
+            if line.startswith("cpu MHz"):
+                freq = line.split(":")[1]
+                freq = freq.replace("\n", "")
+                freq = freq.split(".")[0]
+        self.cpu.set_text("CPU: %s at %s Mhz" %(model, freq))
 
 class GstElementWidget(Group, EventListener, EventLauncher):
     def __init__(self, element):
@@ -121,8 +147,17 @@ class GstElementWidget(Group, EventListener, EventLauncher):
             self.registerEvent("queue_state")
         if name.startswith("progressreport"):
             self.registerEvent("progress_report")
+        if name.startswith("videorate"):
+            self.registerEvent("videorate")
         l.set_text(self.name)
         self.show()
+
+    def evt_videorate(self, event):
+        name = event.content["name"]
+        drop = event.content["drop"]
+        dup = event.content["dup"]
+        text = "%s\nDrop: %s Dup: %s" %(self.name, drop, dup)
+        self.label.set_text(text)
 
     def evt_queue_state(self, event):
         name = event.content["name"]
