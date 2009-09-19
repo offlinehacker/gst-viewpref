@@ -39,7 +39,7 @@ if __name__ == '__main__':
         width, height = 1920, 1080
 
         input_caps = "video/x-raw-yuv, format=(fourcc)YUY2, width=(int)%s, height=(int)%s, framerate=(fraction)30/1, pixel-aspect-ratio=(fraction)1/1" %(width, height)
-        pipeline_desc = "videotestsrc ! %s ! queue %s leaky=2 ! ffmpegcolorspace ! theoraenc ! queue %s ! theoradec  ! ffmpegcolorspace ! ximagesink max-lateness=-1" %(input_caps, queue_params, queue_params)
+        pipeline_desc = "videotestsrc ! %s ! queue %s leaky=2 ! ffmpegcolorspace ! queue ! theoraenc ! queue %s ! theoradec  ! ffmpegcolorspace ! ximagesink max-lateness=-1" %(input_caps, queue_params, queue_params)
     else:
         pipeline_desc = gst_string.replace("queue", "progressreport update-freq=1 silent=true ! queue %s" %queue_params)
     from gstmanager.gstmanager import PipelineManager
