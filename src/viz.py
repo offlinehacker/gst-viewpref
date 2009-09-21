@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 
-from wizard.canvas import Canvas
+from touchwizard.canvas import Canvas
 from pipeline_actioner import PipelineActioner
 import gobject
 from gstmanager.event import EventListener, EventLauncher
