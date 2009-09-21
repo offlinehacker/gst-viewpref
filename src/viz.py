@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*
 
 from wizard.canvas import Canvas
-from statsgrabber import StatsGrabber
+from pipeline_actioner import PipelineActioner
 import gobject
 from gstmanager.event import EventListener, EventLauncher
 import clutter
@@ -21,16 +21,17 @@ class PipelineViz(Canvas, EventListener):
         self.registerEvent("item_description")
         self.registerEvent("play")
         self.registerEvent("pause")
-        self.add_icon(name="player_play", action_signal="play", desc="Play")
-        self.add_icon(name="player_pause", action_signal="pause", desc="Pause")
-        self.add_icon(name="player_stop", action_signal="send_eos", desc="Send EOS")
-        self.add_icon(name="exit", action_signal="quit", desc="Force Exit")
+        self.add_icon(file="player_play", launch_evt="play", desc="Play")
+        self.add_icon(file="player_pause", launch_evt="pause", desc="Pause")
+        self.add_icon(file="player_stop", launch_evt="send_eos", desc="Send EOS")
+        self.add_icon(file="exit", launch_evt="quit", desc="Force Exit")
         self.n_actors = 0
         self.yoffset = 0
         self.pipelinel = pipelinel
         self.parse_pipeline(pipelinel)
         self.display_pipeline()
-        self.stats = StatsGrabber(pipelinel)
+
+        self.pipeline_actioner = PipelineActioner(pipelinel)
         self.display_cpuinfo()
 
         self.desc = desc = Label()
@@ -38,8 +39,8 @@ class PipelineViz(Canvas, EventListener):
         desc.show()
         self.stage.add(desc)
 
-        gobject.timeout_add(100, self.stats.get_queue_info, self.queue_list)
-        gobject.timeout_add(100, self.stats.get_videorate_info, self.videorate_list)
+        gobject.timeout_add(100, self.pipeline_actioner.stats.get_queue_info, self.queue_list)
+        gobject.timeout_add(100, self.pipeline_actioner.stats.get_videorate_info, self.videorate_list)
 
     def evt_item_description(self, event):
         txt = event.content
@@ -197,4 +198,3 @@ class GstElementWidget(Group, EventListener, EventLauncher):
                 value = elt.get_property(name)
                 desc += "%s=%s\n" %(name, str(value))
         self.launchEvent("item_description", desc)
-
