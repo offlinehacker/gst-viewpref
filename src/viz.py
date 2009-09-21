@@ -5,8 +5,8 @@ from wizard.canvas import Canvas
 from statsgrabber import StatsGrabber
 import gobject
 from gstmanager.event import EventListener, EventLauncher
-from candies.core import Group, Rectangle, Color, Label
-from clutter import Color as CColor
+import clutter
+from clutter import Group, Rectangle, Label, Color
 
 wwidth = 140
 wheight = 30
@@ -125,11 +125,11 @@ class GstElementWidget(Group, EventListener, EventLauncher):
         self.name = name = element.get_name()
         self.gstelt = element
         if name.find("src") != -1:
-            color = Color("Blue")
+            color = clutter.color_parse("Blue")
         elif name.find("sink") != -1:
-            color = Color("LightBlue")
+            color = clutter.color_parse("LightBlue")
         else:
-            color = Color("Green")
+            color = clutter.color_parse("Green")
         self.back = r = Rectangle(color)
         r.set_size(wwidth,wheight)
         r.show()
@@ -169,7 +169,7 @@ class GstElementWidget(Group, EventListener, EventLauncher):
         if self.name == name or self.name == "%s, leaky" %name:
             red = int(fill_state*2.55)
             green = 255 - red
-            color = CColor(red, green, 0, 255)
+            color = Color(red, green, 0, 255)
             self.back.set_color(color)
             self.label.set_text(text)
 
@@ -179,11 +179,11 @@ class GstElementWidget(Group, EventListener, EventLauncher):
         if self.name == name:
             text = "%s\nLate by: %s sec" %(name, progress_s)
             if int(progress_s) < 0 and int(progress_s) > -2:
-                self.back.set_color(Color("Orange"))
+                self.back.set_color(clutter.color_parse("Orange"))
             elif int(progress_s) <= -2:
-                self.back.set_color(Color("Red"))
+                self.back.set_color(clutter.color_parse("Red"))
             else:
-                self.back.set_color(Color("Green"))
+                self.back.set_color(clutter.color_parse("Green"))
             self.label.set_text(text)
 
     def display_props(self, source, event):
