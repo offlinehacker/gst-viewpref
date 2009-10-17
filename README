@@ -1,6 +1,18 @@
+ABOUT
+=====
+
 gst-viewperf is an utility to visually see what's happening in the pipeline. To do this, simply put queues anywhere you need to see.
 
 There are currently three health indicators:
 * queue filling states, by polling queue properties; queue maximum filling is volontarily raised so that you can see the changes easily
 * plugin-related relative elapsed time, using progressreport
 * videorate drops and duplicates, which indicates how stable the source is
+
+INSTALLING
+==========
+Depending on your installed version of clutter/touchwizard, execute the right install script
+
+AUTHORS
+=======
+
+Florent Thiery <fthiery@gmail.com>
