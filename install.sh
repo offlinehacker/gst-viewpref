@@ -16,6 +16,6 @@ then
 fi
 TARGET=/usr/local/lib/$PYTHON_DIR/gstviewperf
 
-sudo ln -s `pwd`/src-clutter-1.0 $TARGET
-sudo ln -s `pwd`/src-clutter-1.0/gst-viewperf /usr/bin/gst-viewperf
+sudo ln -s `pwd`/src $TARGET
+sudo ln -s `pwd`/src/gst-viewperf /usr/bin/gst-viewperf
 sudo chmod +x /usr/bin/gst-viewperf
