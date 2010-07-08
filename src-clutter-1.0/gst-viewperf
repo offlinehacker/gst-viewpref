@@ -1,10 +1,10 @@
 #!/usr/bin/env python
-from gstmanager.event import EventListener, EventLauncher 
+import easyevent
 
-class EOSListener(EventListener):
+class EOSListener(easyevent.User):
     def __init__(self):
-        EventListener.__init__(self)
-        self.registerEvent("eos")
+        easyevent.User.__init__(self)
+        self.register_event("eos")
 
     def evt_eos(self, event):
         import sys
@@ -51,7 +51,15 @@ if __name__ == '__main__':
     import gobject
     gobject.timeout_add(2000, pipelinel.run)
 
-    from viz import PipelineViz
-    v = PipelineViz(pipelinel)
 
-    v.run()
+    from clutter import Stage
+    s = Stage()
+    s.set_size(1024, 768)
+
+    from viz import PipelineViz
+    v = PipelineViz(pipelinel, s)
+
+    s.add(v)
+    s.show_all()
+    import gtk
+    gtk.main()

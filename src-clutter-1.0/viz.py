@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*
 
-from touchwizard.canvas import Canvas
 from pipeline_actioner import PipelineActioner
 import gobject
-from gstmanager.event import EventListener, EventLauncher
+import easyevent
 import clutter
 from clutter import Group, Rectangle, Text, Color
 
@@ -13,18 +12,19 @@ wheight = 30
 hspacing = 10
 vspacing = 20
 
-class PipelineViz(Canvas, EventListener):
-    def __init__(self, pipelinel):
-        Canvas.__init__(self, 1024,768, "gst-viewperf")
-        EventListener.__init__(self)
-        self.registerEvent("send_eos")
-        self.registerEvent("item_description")
-        self.registerEvent("play")
-        self.registerEvent("pause")
-        self.add_icon(file="player_play", launch_evt="play", desc="Play")
-        self.add_icon(file="player_pause", launch_evt="pause", desc="Pause")
-        self.add_icon(file="player_stop", launch_evt="send_eos", desc="Send EOS")
-        self.add_icon(file="exit", launch_evt="quit", desc="Force Exit")
+class PipelineViz(Group, easyevent.User):
+    def __init__(self, pipelinel, stage):
+        Group.__init__(self)
+        easyevent.User.__init__(self)
+        self.stage = stage
+        self.register_event("send_eos")
+        self.register_event("item_description")
+        self.register_event("play")
+        self.register_event("pause")
+        #self.add_icon(file="player_play", launch_evt="play", desc="Play")
+        #self.add_icon(file="player_pause", launch_evt="pause", desc="Pause")
+        #self.add_icon(file="player_stop", launch_evt="send_eos", desc="Send EOS")
+        #self.add_icon(file="exit", launch_evt="quit", desc="Force Exit")
         self.n_actors = 0
         self.yoffset = 0
         self.pipelinel = pipelinel
@@ -86,7 +86,7 @@ class PipelineViz(Canvas, EventListener):
             self.n_actors = 0
         self.stage.add(widget)
         x = (self.n_actors %nb_per_line)*(wwidth + hspacing) + 5
-        y = self.widgets_area.get_position()[1] + self.yoffset + 5
+        y = self.yoffset + 5
         self.last_y = y + 15 + wheight
         #print y
         widget.set_position(x, y)
@@ -118,10 +118,9 @@ class PipelineViz(Canvas, EventListener):
                 freq = freq.split(".")[0]
         self.cpu.set_text("CPU: %s at %s Mhz" %(model, freq))
 
-class GstElementWidget(Group, EventListener, EventLauncher):
+class GstElementWidget(Group, easyevent.User):
     def __init__(self, element):
-        EventListener.__init__(self)
-        EventLauncher.__init__(self)
+        easyevent.User.__init__(self)
         Group.__init__(self)
         self.name = name = element.get_name()
         self.gstelt = element
@@ -145,11 +144,11 @@ class GstElementWidget(Group, EventListener, EventLauncher):
             self.leaky = leaky = int(element.get_property("leaky"))
             if leaky > 0:
                 self.name = "%s, leaky" %name
-            self.registerEvent("queue_state")
+            self.register_event("queue_state")
         if name.startswith("progressreport"):
-            self.registerEvent("progress_report")
+            self.register_event("progress_report")
         if name.startswith("videorate"):
-            self.registerEvent("videorate")
+            self.register_event("videorate")
         l.set_text(self.name)
         self.show()
 
@@ -197,4 +196,4 @@ class GstElementWidget(Group, EventListener, EventLauncher):
             if name != "last-buffer":
                 value = elt.get_property(name)
                 desc += "%s=%s\n" %(name, str(value))
-        self.launchEvent("item_description", desc)
+        self.launch_event("item_description", desc)
