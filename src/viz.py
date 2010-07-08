@@ -4,7 +4,7 @@
 from pipeline_actioner import PipelineActioner
 import gobject
 import easyevent
-import clutter
+import clutter, candies2
 from clutter import Group, Rectangle, Text, Color
 
 wwidth = 140
@@ -17,6 +17,7 @@ class PipelineViz(Group, easyevent.User):
         Group.__init__(self)
         easyevent.User.__init__(self)
         self.stage = stage
+        self.make_buttons()
         self.register_event("send_eos")
         self.register_event("item_description")
         self.register_event("play")
@@ -41,6 +42,22 @@ class PipelineViz(Group, easyevent.User):
 
         gobject.timeout_add(100, self.pipeline_actioner.stats.get_queue_info, self.queue_list)
         gobject.timeout_add(100, self.pipeline_actioner.stats.get_videorate_info, self.videorate_list)
+
+    def make_buttons(self):
+        xpos = 0
+        btn_grp = clutter.Group()
+	btn = Button('play', self.evt_play)
+        btn_grp.add(btn)
+        xpos += btn.get_width() + 5
+	btn = Button('pause', self.evt_pause)
+        btn_grp.add(btn)
+        btn.set_position(xpos, 0)
+        xpos += btn.get_width() + 5
+	btn = Button('stop', self.evt_send_eos)
+        btn_grp.add(btn)
+        btn.set_position(xpos, 0)
+        btn_grp.set_position(0, 500)
+        self.stage.add(btn_grp)
 
     def evt_item_description(self, event):
         txt = event.content
@@ -68,18 +85,17 @@ class PipelineViz(Group, easyevent.User):
                 item = GstElementWidget(item)
                 self.add_widget(item)
 
-    def evt_send_eos(self, event):
+    def evt_send_eos(self, event=None):
         self.pipelinel.send_eos()
 
-    def evt_play(self, event):
+    def evt_play(self, event=None):
         self.pipelinel.play()
 
-    def evt_pause(self, event):
+    def evt_pause(self, event=None):
         self.pipelinel.pause()
        
     def add_widget(self, widget):
         nb_per_line = int(self.stage.get_width()/wwidth) -1
-        #print self.n_actors, nb_per_line
         if self.n_actors >= nb_per_line: 
             #print "new line needed"
             self.yoffset += wheight + vspacing
@@ -197,3 +213,23 @@ class GstElementWidget(Group, easyevent.User):
                 value = elt.get_property(name)
                 desc += "%s=%s\n" %(name, str(value))
         self.launch_event("item_description", desc)
+
+class Button(clutter.Group):
+    def __init__(self, title, callback):
+        clutter.Group.__init__(self)
+        self.back = clutter.Rectangle()
+        self.back.set_size(150, 50)
+        self.back.set_color(clutter.color_from_string("Blue"))
+        self.add(self.back)
+        self.callback = callback
+        self.text = clutter.Text()
+        self.text.set_text(title)
+        #self.text.set_size(150, 50)
+        self.text.show()
+        self.add(self.text)
+        self.text.set_position((self.get_width()-self.text.get_width())/2, (self.get_height()-self.text.get_height()/2 - self.text.get_height()))
+        self.set_reactive(True)
+        self.connect('button-press-event', self.on_press)
+
+    def on_press(self, source, event):
+        self.callback()
