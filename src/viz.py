@@ -8,7 +8,7 @@ import clutter, candies2
 from clutter import Group, Rectangle, Text, Color
 
 wwidth = 140
-wheight = 30
+wheight = 40
 hspacing = 10
 vspacing = 20
 
@@ -117,7 +117,7 @@ class PipelineViz(Group, easyevent.User):
         cpu.set_line_wrap(False)
         self.update_cpuinfo()
         self.stage.add(cpu)
-        cpu.set_position(1024-cpu.get_width(), 590)
+        cpu.set_position(self.stage.get_width()-cpu.get_width() - 5, self.stage.get_height() - cpu.get_height() - 5)
         gobject.timeout_add_seconds(10, self.update_cpuinfo)
 
     def update_cpuinfo(self):
